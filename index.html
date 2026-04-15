@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>支払順序診断｜死の谷・前受け・損失吸収順位を可視化</title>
+<meta name="description" content="6つの数字と6つの質問で、あなたの事業の「死の谷」と支払構造を診断します。誰が先に払い、誰が待ち、誰が最後の損失をぬぐうのかを可視化し、『最後の雑巾』か『順序の設計者』かを判定します。">
+<link rel="canonical" href="https://paymentorder.jp/diagnostic/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:site_name" content="支払順序の設計図">
+<meta property="og:url" content="https://paymentorder.jp/diagnostic/">
+<meta property="og:title" content="あなたは『最後の雑巾』か？｜支払順序診断">
+<meta property="og:description" content="誰が先に払い、誰が待ち、誰が最後の損失をぬぐっているのか。5分で、あなたの事業の死の谷と支払構造を可視化します。">
+<meta property="og:image" content="https://paymentorder.jp/assets/payment-order-diagnostic-og.jpg">
+<meta property="og:image:alt" content="支払順序診断｜あなたは『最後の雑巾』か？">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="あなたは『最後の雑巾』か？｜支払順序診断">
+<meta name="twitter:description" content="5分で、死の谷の深さと支払構造を可視化。誰が先に払い、誰が最後の損失をぬぐっているのかを診断します。">
+<meta name="twitter:image" content="https://paymentorder.jp/assets/payment-order-diagnostic-og.jpg">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Spectral:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@400;500&display=swap');
+:root{--bg:#fff;--sf:#f7f6f3;--sf2:#efede9;--bd:#ddd9d2;--tx:#111;--tx2:#444;--tx3:#999;--gold:#9a7e2e;--gold2:#c4a23a;--goldbg:rgba(154,126,46,.06);--muted:#bbb;--lo:#b07030;--lobg:rgba(176,112,48,.07);--mi:#4878a0;--mibg:rgba(72,120,160,.07);--hi:#3a8848;--hibg:rgba(58,136,72,.07)}
+*{margin:0;padding:0;box-sizing:border-box}html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--tx);font-family:'Space Grotesk',sans-serif;font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased}
+.w{max-width:640px;margin:0 auto;padding:48px 24px 120px}
+
+.lang{position:fixed;top:14px;right:14px;z-index:100;display:flex;border:1px solid var(--bd);border-radius:3px;overflow:hidden;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.06)}.lang button{background:none;border:none;border-right:1px solid var(--bd);color:var(--tx3);padding:5px 12px;cursor:pointer;font:600 11px 'DM Mono',monospace;letter-spacing:1px;transition:all .15s}.lang button:last-child{border-right:none}.lang button.on{background:var(--tx);color:#fff}
+
+/* ── Header ── */
+.hd{margin-bottom:8px;padding-top:20px}
+.hd-pre{font:600 10px 'DM Mono',monospace;letter-spacing:6px;text-transform:uppercase;color:var(--gold);margin-bottom:16px}
+.hd h1{font-size:44px;font-weight:700;color:var(--tx);line-height:1.12;margin-bottom:16px;letter-spacing:-.5px}
+.hd h1 em{font-style:normal;font-weight:700}
+.hd-p{font-size:16px;color:var(--tx2);max-width:500px;line-height:1.7;font-weight:400}
+.hd-meta{margin-top:16px;font:500 11px 'DM Mono',monospace;color:var(--tx3);letter-spacing:.5px}
+
+/* ── Ladder: BIG ── */
+.ladder{padding:40px 0 44px;border-top:2px solid var(--sf2);border-bottom:2px solid var(--sf2)}
+.ladder-q{font-size:20px;font-weight:700;color:var(--tx);margin-bottom:24px;text-align:center}
+.ladder-list{display:flex;flex-direction:column;gap:2px}
+.ladder-item{display:flex;align-items:center;gap:16px;padding:14px 20px;border-radius:4px;cursor:default;transition:background .15s}
+.ladder-item:hover{background:var(--sf)}
+.ladder-rank{font:700 14px 'DM Mono',monospace;width:28px;text-align:center;flex-shrink:0}
+.ladder-bar{width:5px;border-radius:3px;align-self:stretch;flex-shrink:0}
+.ladder-name{font-weight:700;line-height:1.3}
+.ladder-sub{font-size:12px;line-height:1.4;margin-top:2px;font-weight:400}
+
+.ladder-item:nth-child(1){background:var(--goldbg)}
+.ladder-item:nth-child(1) .ladder-rank{color:var(--gold2)}
+.ladder-item:nth-child(1) .ladder-bar{background:var(--gold2)}
+.ladder-item:nth-child(1) .ladder-name{font-size:26px;color:var(--tx)}
+.ladder-item:nth-child(1) .ladder-sub{color:var(--gold)}
+
+.ladder-item:nth-child(2) .ladder-rank{color:#888}
+.ladder-item:nth-child(2) .ladder-bar{background:#999}
+.ladder-item:nth-child(2) .ladder-name{font-size:18px;color:var(--tx2)}
+.ladder-item:nth-child(2) .ladder-sub{color:var(--tx3)}
+
+.ladder-item:nth-child(3) .ladder-rank{color:#a08050}
+.ladder-item:nth-child(3) .ladder-bar{background:#b09060}
+.ladder-item:nth-child(3) .ladder-name{font-size:16px;color:#806840}
+.ladder-item:nth-child(3) .ladder-sub{color:var(--tx3)}
+
+.ladder-item:nth-child(4) .ladder-rank{color:var(--muted)}
+.ladder-item:nth-child(4) .ladder-bar{background:#ccc}
+.ladder-item:nth-child(4) .ladder-name{font-size:14px;color:var(--muted)}
+.ladder-item:nth-child(4) .ladder-sub{color:var(--muted)}
+
+/* ── Sliders ── */
+.sec{margin-bottom:36px}
+.sec-t{font-size:24px;font-weight:700;color:var(--tx);margin-bottom:4px}
+.sec-d{font-size:13px;color:var(--tx3);margin-bottom:24px}
+.sg{margin-bottom:24px;padding:16px 18px;background:var(--sf);border-radius:6px}
+.sg-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.sg-q{font-size:14px;color:var(--tx);font-weight:500;flex:1;padding-right:12px;line-height:1.5}
+.sg-v{font:700 28px 'DM Mono',monospace;color:var(--gold);min-width:30px;text-align:right}
+.sg-ends{display:flex;justify-content:space-between;margin-bottom:4px}
+.sg-e{font:500 10px 'DM Mono',monospace;color:var(--tx3)}
+input[type=range]{-webkit-appearance:none;width:100%;height:6px;background:var(--bd);outline:none;border-radius:3px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;background:var(--gold);border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.18);transition:transform .12s}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.15)}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;background:var(--gold);border-radius:50%;cursor:pointer;border:none}
+
+/* ── Advanced (cash flow) ── */
+.adv-toggle{display:flex;align-items:center;gap:8px;padding:12px 0;cursor:pointer;font-size:13px;font-weight:600;color:var(--tx3);border:none;background:none;transition:color .15s}
+.adv-toggle:hover{color:var(--tx2)}
+.adv-toggle .arrow{display:inline-block;transition:transform .2s;font-size:10px}
+.adv-toggle.open .arrow{transform:rotate(90deg)}
+.adv-body{display:none;padding:20px;background:var(--sf);border-radius:6px;margin-bottom:24px}
+.adv-body.open{display:block;animation:up .3s ease}
+.fg{margin-bottom:16px}
+.fg-label{display:flex;align-items:baseline;gap:6px;margin-bottom:1px}
+.fg-var{font:700 13px 'DM Mono',monospace;color:var(--gold)}
+.fg-name{font-size:13px;font-weight:600;color:var(--tx)}
+.fg-hint{font-size:11px;color:var(--tx3);margin-bottom:4px}
+.fg-row{display:flex;align-items:center;gap:8px}
+.fg-input{background:#fff;border:1px solid var(--bd);color:var(--tx);padding:8px 10px;font:500 14px 'DM Mono',monospace;border-radius:3px;width:120px;outline:none;transition:border-color .15s}
+.fg-input:focus{border-color:var(--gold)}
+.fg-unit{font:400 10px 'DM Mono',monospace;color:var(--tx3)}
+
+.hr{border:none;border-top:2px solid var(--sf2);margin:32px 0}
+.btn{display:block;width:100%;padding:18px;background:var(--tx);color:#fff;border:none;font:700 17px 'Space Grotesk',sans-serif;letter-spacing:.5px;cursor:pointer;border-radius:4px;transition:all .15s}.btn:hover{background:#333;transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.12)}
+
+/* ── Results ── */
+.res{display:none}.res.on{display:block}
+.ly{margin-bottom:24px;animation:up .45s ease both}.ly:nth-child(2){animation-delay:.1s}.ly:nth-child(3){animation-delay:.2s}.ly:nth-child(4){animation-delay:.3s}@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.card{background:var(--sf);border-radius:8px;padding:28px;margin-bottom:16px}
+.card-tag{font:700 11px 'DM Mono',monospace;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:14px}
+.tb{text-align:center;padding:28px 20px;margin:16px 0;border-radius:6px}
+.tb-pre{font:700 10px 'DM Mono',monospace;letter-spacing:3px;margin-bottom:6px}
+.tb-name{font-size:32px;font-weight:700;margin-bottom:8px;line-height:1.2}
+.tb-desc{font-size:13px;line-height:1.6;max-width:360px;margin:0 auto}
+.tb.tp-rag{background:rgba(187,187,187,.1)}.tb.tp-rag .tb-pre,.tb.tp-rag .tb-name{color:var(--muted)}.tb.tp-rag .tb-desc{color:var(--tx3)}
+.tb.tp-limbo{background:rgba(176,144,96,.08)}.tb.tp-limbo .tb-pre{color:#a08050}.tb.tp-limbo .tb-name{color:#806840}.tb.tp-limbo .tb-desc{color:var(--tx2)}
+.tb.tp-arch{background:rgba(120,120,120,.06)}.tb.tp-arch .tb-pre,.tb.tp-arch .tb-name{color:#666}.tb.tp-arch .tb-desc{color:var(--tx2)}
+.tb.tp-owner{background:var(--goldbg);border:2px solid rgba(154,126,46,.2)}.tb.tp-owner .tb-pre,.tb.tp-owner .tb-name{color:var(--gold)}.tb.tp-owner .tb-desc{color:var(--tx2)}
+.eq{font:500 12px 'DM Mono',monospace;color:var(--tx3);text-align:center;padding:12px;background:var(--sf2);border-radius:4px;margin:12px 0}.eq b{font-size:24px;font-weight:700;color:var(--tx);display:block;margin-top:4px}
+.vc{width:100%;height:150px;margin:8px 0}
+.si{margin-bottom:10px}.si-h{display:flex;justify-content:space-between;font-size:12px;font-weight:500;margin-bottom:3px}.si-n{color:var(--tx3)}.si-v{font:600 12px 'DM Mono',monospace;color:var(--gold)}.si-bar{height:6px;background:var(--sf2);border-radius:3px;overflow:hidden}.si-fill{height:100%;background:var(--gold);border-radius:3px;transition:width .7s ease}
+.shr{display:flex;gap:8px;justify-content:center;margin-top:18px}.shr button{padding:8px 16px;background:var(--tx);color:#fff;border:none;font:600 11px 'DM Mono',monospace;cursor:pointer;border-radius:3px;transition:all .15s}.shr button:hover{background:#333}
+
+.ii{padding:16px 0;border-bottom:1px solid var(--bd)}.ii:last-child{border-bottom:none}.ii-dim{font:700 11px 'DM Mono',monospace;color:var(--gold);letter-spacing:.5px;margin-bottom:2px}.ii-sr{display:flex;align-items:center;gap:8px;margin-bottom:4px}.ii-sn{font:700 18px 'DM Mono',monospace;color:var(--tx)}.ii-sl{font-size:10px;padding:3px 8px;border-radius:3px;font-weight:600}.ii-sl.lo{background:var(--lobg);color:var(--lo)}.ii-sl.mi{background:var(--mibg);color:var(--mi)}.ii-sl.hi{background:var(--hibg);color:var(--hi)}.ii-t{font-size:13px;color:var(--tx2);line-height:1.65}
+.cr{display:flex;gap:12px;padding:14px;background:#fff;border-radius:6px;margin-bottom:8px;border-left:3px solid var(--bd);transition:border-color .15s}.cr:hover{border-left-color:var(--gold)}.cr-n{font:700 11px 'DM Mono',monospace;color:var(--gold);min-width:36px;padding-top:1px}.cr-t{font-size:14px;font-weight:600;color:var(--tx);margin-bottom:1px}.cr-w{font-size:11px;color:var(--tx3)}
+.bn{background:#fff;border-left:3px solid var(--lo);padding:14px 18px;margin-top:14px;border-radius:0 6px 6px 0}.bn-tag{font:700 10px 'DM Mono',monospace;color:var(--lo);letter-spacing:2px;margin-bottom:4px}.bn-t{font-size:13px;color:var(--tx2);line-height:1.6}.bn-t strong{color:var(--lo);font-weight:600}
+
+.em-card{background:var(--sf);border-radius:8px;padding:32px 24px;text-align:center}.em-mark{font-size:28px;color:var(--gold);margin-bottom:10px}.em-title{font-size:20px;font-weight:700;color:var(--tx);margin-bottom:6px}.em-desc{font-size:13px;color:var(--tx2);line-height:1.6;margin-bottom:20px;max-width:400px;margin-left:auto;margin-right:auto}.em-feats{text-align:left;max-width:360px;margin:0 auto 20px}.em-f{font-size:13px;color:var(--tx2);padding:6px 0;border-bottom:1px solid var(--bd);display:flex;gap:8px;align-items:baseline}.em-f:last-child{border-bottom:none}.em-fm{color:var(--gold);font:600 11px 'DM Mono',monospace}.em-row{display:flex;gap:8px;max-width:380px;margin:0 auto}.em-in{flex:1;background:#fff;border:2px solid var(--bd);color:var(--tx);padding:10px 14px;font:500 14px 'Space Grotesk',sans-serif;border-radius:4px;outline:none;transition:border-color .15s}.em-in:focus{border-color:var(--gold)}.em-in::placeholder{color:var(--muted)}.em-bt{padding:10px 20px;background:var(--tx);color:#fff;border:none;font:700 13px 'Space Grotesk',sans-serif;cursor:pointer;border-radius:4px;white-space:nowrap}.em-bt:hover{background:#333}.em-note{font-size:10px;color:var(--tx3);margin-top:8px}.em-ok{display:none;padding:14px;background:var(--hibg);border-radius:4px;color:var(--hi);font-size:13px;font-weight:600}
+
+.bk{text-align:center;margin-top:28px;padding:24px;background:var(--sf);border-radius:8px}.bk-p{font-size:12px;color:var(--tx3);margin-bottom:8px}.bk-t{font:400 22px 'Spectral',serif;font-style:italic;color:var(--gold)}.bk-s{font-size:11px;color:var(--tx3);margin-top:4px;font-style:italic}
+.ft{text-align:center;margin-top:40px;padding-top:20px;border-top:1px solid var(--sf2)}.ft-t{font:500 9px 'DM Mono',monospace;color:var(--muted);letter-spacing:1px}
+@media(max-width:480px){.w{padding:32px 16px 80px}.hd h1{font-size:32px}.ladder-item:nth-child(1) .ladder-name{font-size:22px}.ladder-item:nth-child(2) .ladder-name{font-size:16px}.fg-input{width:100px}.em-row{flex-direction:column}.sg{padding:12px 14px}}
+
+.em-ok.err{background:var(--lobg);color:var(--lo)}
+.em-bt[disabled]{opacity:.6;cursor:not-allowed}
+
+</style>
+</head>
+<body>
+<div class="lang"><button class="on" onclick="L('ja')">JA</button><button onclick="L('en')">EN</button></div>
+<div class="w">
+
+<div class="hd">
+  <div class="hd-pre">Payment Order Diagnostic</div>
+  <h1 id="T">あなたの<em>支払構造</em>を<br>可視化する</h1>
+  <p class="hd-p" id="S">誰が先に払い、誰が待ち、誰が最後の損失をぬぐうのか。<br>お金の流れの順序が、あなたの事業の位置を決めている。</p>
+  <div class="hd-meta" id="M">5 min · free</div>
+</div>
+
+<!-- ── Ladder ── -->
+<div class="ladder">
+  <div class="ladder-q" id="ldQ">あなたは今、どこにいるか？</div>
+  <div class="ladder-list">
+    <div class="ladder-item"><div class="ladder-rank">01</div><div class="ladder-bar"></div><div><div class="ladder-name" id="ld1">Owner of Order — 順序の設計者</div><div class="ladder-sub" id="ld1s">先に払われ、構造で稼ぐ</div></div></div>
+    <div class="ladder-item"><div class="ladder-rank">02</div><div class="ladder-bar"></div><div><div class="ladder-name" id="ld2">The Architect — 設計者</div><div class="ladder-sub" id="ld2s">設計が部分的に機能している</div></div></div>
+    <div class="ladder-item"><div class="ladder-rank">03</div><div class="ladder-bar"></div><div><div class="ladder-name" id="ld3">Structural Limbo — 中間地帯</div><div class="ladder-sub" id="ld3s">抜け出しかけているが、まだ届いていない</div></div></div>
+    <div class="ladder-item"><div class="ladder-rank">04</div><div class="ladder-bar"></div><div><div class="ladder-name" id="ld4">The Final Rag — 最後の雑巾</div><div class="ladder-sub" id="ld4s">残った負担がここに落ちてくる</div></div></div>
+  </div>
+</div>
+
+<!-- ── Sliders FIRST ── -->
+<div class="sec">
+  <div class="sec-t" id="t2">6つの質問</div>
+  <p class="sec-d" id="d2">現状に最も近いところにスライダーを動かしてください。</p>
+  <div id="SL"></div>
+</div>
+
+<!-- ── Advanced: Cash flow (collapsed) ── -->
+<button class="adv-toggle" id="advBtn" onclick="toggleAdv()"><span class="arrow" id="advArrow">▶</span><span id="advLabel">さらに詳しく診断する（任意）</span></button>
+<div class="adv-body" id="advBody">
+  <div class="fg"><div class="fg-label"><span class="fg-var">O</span><span class="fg-name" id="lO">投資回収期間</span></div><div class="fg-hint" id="hO">最初の支出から最初の入金まで</div><div class="fg-row"><input type="number" class="fg-input" id="vO" value="6" min="0" step="1"><span class="fg-unit" id="uO">months</span></div></div>
+  <div class="fg"><div class="fg-label"><span class="fg-var">W</span><span class="fg-name" id="lW">作業期間</span></div><div class="fg-hint" id="hW">受注から納品まで</div><div class="fg-row"><input type="number" class="fg-input" id="vW" value="60" min="0" step="1"><span class="fg-unit" id="uW">days</span></div></div>
+  <div class="fg"><div class="fg-label"><span class="fg-var">C</span><span class="fg-name" id="lC">入金待ち</span></div><div class="fg-hint" id="hC">納品から入金まで</div><div class="fg-row"><input type="number" class="fg-input" id="vC" value="45" min="0" step="1"><span class="fg-unit" id="uC">days</span></div></div>
+  <div class="fg"><div class="fg-label"><span class="fg-var">P</span><span class="fg-name" id="lP">前受けの割合</span></div><div class="fg-hint" id="hP">着手前に受け取っている割合</div><div class="fg-row"><input type="number" class="fg-input" id="vP" value="10" min="0" max="100" step="5"><span class="fg-unit">%</span></div></div>
+  <div class="fg"><div class="fg-label"><span class="fg-var">F</span><span class="fg-name" id="lF">毎月の固定費</span></div><div class="fg-hint" id="hF">売上ゼロでも出ていく金額</div><div class="fg-row"><input type="number" class="fg-input" id="vF" value="80" min="0" step="10"><span class="fg-unit" id="uF">万円</span></div></div>
+  <div class="fg"><div class="fg-label"><span class="fg-var">R</span><span class="fg-name" id="lR">想定外コスト</span></div><div class="fg-hint" id="hR">やり直し・失注など（年間合計）</div><div class="fg-row"><input type="number" class="fg-input" id="vR" value="120" min="0" step="10"><span class="fg-unit" id="uR">万円</span></div></div>
+</div>
+
+<hr class="hr">
+<button class="btn" id="BT" onclick="run()">結果を見る</button>
+
+<!-- RESULTS -->
+<div class="res" id="RES"><hr class="hr">
+
+<!-- Layer 1: Type + Radar -->
+<div class="ly"><div class="card" style="padding:32px 28px">
+  <div class="card-tag" id="R1">YOUR STRUCTURE</div>
+  <div class="tb" id="TB">
+    <div class="tb-pre">TYPE</div>
+    <div class="tb-name" id="TN"></div>
+    <div class="tb-desc" id="TD"></div>
+  </div>
+  <div id="totalScore" style="text-align:center;margin:16px 0 8px;font:700 14px 'DM Mono',monospace;color:var(--gold);letter-spacing:1px"></div>
+  <canvas id="RC" width="300" height="300" style="display:block;margin:8px auto 20px"></canvas>
+  <div class="shr">
+    <button onclick="shareX()">Share on X</button>
+    <button onclick="cp()" id="CB">Copy</button>
+  </div>
+</div></div>
+
+<!-- Layer 2: Valley -->
+<div class="ly"><div class="card">
+  <div class="card-tag" id="R2">DEATH VALLEY</div>
+
+  <div class="bn"><div class="bn-tag" id="DVB">VALLEY LEVEL</div><div class="bn-t" id="DVT"></div></div>
+</div></div>
+
+<!-- Layer 3: What this means + Bottleneck + Next step hint -->
+<div class="ly"><div class="card">
+  <div class="card-tag" id="R4L">WHAT THIS MEANS</div>
+  <div id="typeMeaning" style="font-size:14px;color:var(--tx2);line-height:1.75;margin-bottom:20px"></div>
+  <div class="bn"><div class="bn-tag" id="BNL">BOTTLENECK</div><div class="bn-t" id="BNT"></div></div>
+  <div id="nextHint" style="margin-top:16px;padding:14px 18px;background:var(--goldbg);border-left:3px solid var(--gold);border-radius:0 4px 4px 0">
+    <div style="font:700 10px 'DM Mono',monospace;color:var(--gold);letter-spacing:2px;margin-bottom:4px" id="NHL">NEXT STEP</div>
+    <div style="font-size:13px;color:var(--tx2);line-height:1.65" id="NHT"></div>
+  </div>
+</div></div>
+
+<!-- Layer 4: Reading Path -->
+<div class="ly"><div class="card">
+  <div class="card-tag" id="R3">READING PATH</div>
+  <div id="R3D" style="font-size:13px;color:var(--tx3);margin-bottom:14px"></div>
+  <div id="CHS"></div>
+</div></div>
+
+<!-- Layer 5: Email + Book combined -->
+<div class="ly"><div class="em-card" style="padding:36px 24px">
+  <div style="font-size:36px;color:var(--gold);margin-bottom:12px">↑</div>
+  <div class="em-title" id="ET" style="font-size:24px;margin-bottom:10px">次のレベルへ</div>
+  <div class="em-desc" id="ED" style="font-size:14px;margin-bottom:24px">あなたのタイプに特化した分析と、一つ上に移る具体策をメールで送ります。</div>
+  <div class="em-feats">
+    <div class="em-f"><span class="em-fm">→</span><span id="EF1">タイプ別の構造分析</span></div>
+    <div class="em-f"><span class="em-fm">→</span><span id="EF2">次のレベルへの具体策</span></div>
+    <div class="em-f"><span class="em-fm">→</span><span id="EF3">同タイプに典型的な罠</span></div>
+  </div>
+  <div class="em-row" id="ER">
+    <input type="email" class="em-in" id="EI" placeholder="your@email.com" autocomplete="email">
+    <button class="em-bt" onclick="sub()" id="EB">Send</button>
+  </div>
+  <div class="em-note" id="EN">Free · Unsubscribe anytime</div>
+  <div class="em-ok" id="EO"></div>
+
+  <div style="margin-top:28px;padding-top:24px;border-top:1px solid var(--bd)">
+    <p style="font-size:11px;color:var(--tx3);margin-bottom:10px;font:500 10px 'DM Mono',monospace;letter-spacing:2px" id="CT">BOOK</p>
+    <div style="font:700 22px 'Space Grotesk',sans-serif;color:var(--tx);margin-bottom:4px" id="bkTitle">未来を先に売れ</div>
+    <p style="font-size:12.5px;color:var(--tx2);line-height:1.5;margin-bottom:12px" id="bkSub">マルクス成功哲学――支払順序で読む資本・労働・死の谷</p>
+    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:14px;line-height:1.65" id="bkDesc">『資本論』を成功哲学として読み直し、誰が先に払い、誰が最後の損失をぬぐうのかという順序から、資本と労働を解剖する。</p>
+    <div style="display:flex;align-items:baseline;gap:8px;justify-content:center">
+      <span style="font-size:13px;color:var(--tx);font-weight:600" id="bkAuthor">ミロシュ・ノヴァーク</span>
+      <span style="font-size:11px;color:var(--tx3);font:400 11px 'DM Mono',monospace" id="bkAuthorEn">Milos Novak</span>
+    </div>
+    <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px;align-items:center">
+      <a href="https://www.amazon.co.jp/dp/B0GWZ39Z5M" target="_blank" rel="noopener" style="display:inline-block;padding:10px 24px;background:var(--tx);color:#fff;font:700 13px 'Space Grotesk',sans-serif;border-radius:4px;text-decoration:none;letter-spacing:.5px;transition:all .15s" onmouseover="this.style.background='#333'" onmouseout="this.style.background='var(--tx)'" id="bkAmazon">Amazonで予約受付中 →</a>
+      <a href="https://notes.paymentorder.jp/" target="_blank" rel="noopener" style="font:500 12px 'DM Mono',monospace;color:var(--gold);text-decoration:none;letter-spacing:.5px;transition:color .15s" onmouseover="this.style.color='var(--gold2)'" onmouseout="this.style.color='var(--gold)'" id="bkBlog">Blog: Payment Order Lab Notes</a>
+    </div>
+  </div>
+</div></div>
+
+
+<div class="ft"><div class="ft-t">Payment Order Lab｜支払順序の設計図</div></div>
+</div>
+</div>
+
+<script>
+const DIM_KEYS=['payment_order','carrying_power','capital_formation','recurring_revenue','risk_management','loss_design'];
+let la='ja',advOpen=false;
+window.DIAG_CONFIG=window.DIAG_CONFIG||{subscribeEndpoint:'https://api.paymentorder.jp/subscribe'};
+
+function toggleAdv(){
+  advOpen=!advOpen;
+  document.getElementById('advBody').classList.toggle('open',advOpen);
+  document.getElementById('advBtn').classList.toggle('open',advOpen);
+}
+
+const tx={
+  ja:{
+    T:'あなたの<em>支払構造</em>を<br>可視化する',
+    S:'誰が先に払い、誰が待ち、誰が最後の損失をぬぐうのか。お金の流れの順序が、あなたの事業の位置を決めている。',
+    M:'5 min · free',
+    t2:'6つの質問',
+    d2:'直感で答えてください。正解はありません。',
+    bt:'結果を見る',
+    advLabel:'さらに詳しく診断する（任意）',
+    ldQ:'あなたは今、どこにいるか？',
+    ld1:'Owner of Order — 順序の設計者',ld1s:'先に払われ、構造で稼ぐ',ld2:'The Architect — 設計者',ld2s:'設計が部分的に機能している',ld3:'Structural Limbo — 中間地帯',ld3s:'抜け出しかけているが、まだ届いていない',ld4:'The Final Rag — 最後の雑巾',ld4s:'残った負担がここに落ちてくる',
+    lO:'投資回収期間',hO:'最初の支出から最初の入金まで',uO:'months',
+    lW:'作業期間',hW:'受注から納品まで',uW:'days',
+    lC:'入金待ち',hC:'納品から入金まで',uC:'days',
+    lP:'前受けの割合',hP:'着手前に受け取っている割合',
+    lF:'毎月の固定費',hF:'売上ゼロでも出ていく金額',uF:'万円',
+    lR:'想定外コスト',hR:'やり直し・失注など（年間合計）',uR:'万円',
+    moneyUnit:'万円', perMonth:'月',
+    dims:['支払順序','持久力','資本化','継続収入','リスク管理','損失設計'],
+    qs:['お金が入るタイミングは、仕事の前？　後？','お金が足りない月があったら、どうしている？','今月やった仕事は、来月の仕事を楽にしているか？','毎月、新しい客を探さないといけない状態か？','仕事がキャンセルされたら、損するのは誰？','予想外のトラブルが起きたとき、コストを被るのは誰？'],
+    qL:['ほぼ仕事の後','貯金を崩す','毎回ゼロから','毎月探している','全部自分','いつも自分'],
+    qR:['ほぼ仕事の前','仕組みがある','積み上がっている','自動的に入る','相手も負担する','分担できる'],
+    types:{
+      rag:{n:'The Final Rag — 最後の雑巾タイプ',d:'誰も引き受けなかった負担が、最後にあなたに落ちてくる構造。ここから上がる方法はある。',c:'tp-rag'},
+      limbo:{n:'Structural Limbo — 中間地帯タイプ',d:'現在の構造から抜け出しかけている。あと一歩の設計で次へ移れる。',c:'tp-limbo'},
+      arch:{n:'The Architect — 設計者タイプ',d:'支払構造の設計がある程度機能している。最も低いスコアが次の課題。',c:'tp-arch'},
+      owner:{n:'Owner of Order — 順序の設計者タイプ',d:'支払構造を意識的に設計し、先に払われる仕組みが機能している。',c:'tp-owner'}
+    },
+    typeMeaning:{
+      rag:'あなたの事業では、お金は仕事の後に入り、足りない分は自分で埋め、トラブルのコストも自分で被っている。これは能力の問題ではなく、お金の流れの順序の問題。順序は設計し直せる。',
+      limbo:'いくつかの仕組みは動き始めている。だが主要な部分では、まだ自分が先にコストを被る構造が残っている。ここから一歩進むには、最もスコアが低い項目に集中すること。',
+      arch:'支払構造の設計がかなり進んでいる。ただし、最もスコアが低い項目が全体の足を引っ張っている。そこを埋めれば、次の段階に到達できる。',
+      owner:'先に払われる構造が機能している。ただし、この位置は自動的には維持されない。定期的に構造を点検し、最もスコアが低い項目が劣化していないか確認すること。'
+    },
+    nextHint:{
+      rag:'次の案件で、着手前に全体の10〜20%でいいので前受けを取ってみる。前受けがゼロの状態から抜け出すことが、構造変化の起点になる。',
+      limbo:'最もスコアが低い1項目だけに集中する。すべてを同時に変えようとしない。1つの変数を動かすだけで、構造全体が変わることがある。',
+      arch:'ボトルネックの項目を、契約・仕組み・制度のレベルで設計し直す。個人の努力ではなく、構造として解決する。',
+      owner:'最もスコアが低い項目が「4→3」に劣化するシナリオを想定し、それを防ぐ仕組みを先に作っておく。'
+    },
+    R1:'YOUR STRUCTURE',
+    R2:'DEATH VALLEY',
+    R3:'READING PATH',
+    R3D:'『未来を先に売れ: マルクス成功哲学―支払順序で読む資本・労働・死の谷』の該当章',
+    R4L:'これが意味すること',
+    BNL:'BOTTLENECK',
+    NHL:'ここから動く',
+    bnP:'最もスコアが低い項目：',
+    bnS:'。次に取り組むべき課題。',
+    valleyLabel:'概算必要緩衝資金',
+    valleyMetric1:'初回回収まで',
+    valleyMetric2:'実効露出期間',
+    valleyMetric3:'前受け率',
+    valleyBandTitle:'VALLEY LEVEL',
+    valleyBands:{light:'浅い',moderate:'中程度',deep:'深い',severe:'危険'},
+    valleyText:{
+      light:'比較的浅い谷です。前受け率を少し上げるだけでも、さらに浅くできます。',
+      moderate:'谷はあるが、まだ設計変更で削りやすい状態です。回収速度か前受け率のどちらか1つを動かしてください。',
+      deep:'固定費と待ち時間が重い状態です。価格ではなく、契約条件・提供範囲・回収順序を先に見直す段階です。',
+      severe:'自己資金が最後の吸収体になりやすい水準です。前受け・段階請求・固定費圧縮・スコープ縮小を優先してください。'
+    },
+    chapterWhy:'効く項目',
+    chs:[
+      {n:'Ch.1',t:'The First Move',w:'支払順序の基本'},
+      {n:'Ch.2',t:'Organized Waiting',w:'持久力の設計'},
+      {n:'Ch.3',t:'Workers Pay First',w:'なぜ先に払うことになるか'},
+      {n:'Ch.4',t:'Future Capacity',w:'アクセス権の設計'},
+      {n:'Ch.5',t:'Valley of Death',w:'ギャップの変数操作'},
+      {n:'Ch.6',t:'Labor vs. Capital',w:'前受けを資産に変える'},
+      {n:'Ch.7',t:'Sale of Order',w:'継続課金の設計'},
+      {n:'Ch.8',t:'Absence Architecture',w:'リスクの契約化'},
+      {n:'Ch.9',t:'Researcher as Capitalist',w:'知識の資本化'},
+      {n:'Ch.10',t:'First-Loss Machines',w:'損失の外部化'},
+      {n:'Ch.11',t:'Paid to Wait',w:'待機のビジネス'},
+      {n:'Ch.12',t:'Get Paid First',w:'総合再設計'}
+    ],
+    dcm:[[0,2],[1,4],[2,5],[3,6],[4,7],[5,9]],
+    CT:'BOOK',
+    ET:'次のレベルへ',
+    ED:'あなたのタイプに特化した分析と、一つ上に移る具体策をメールで送ります。',
+    EF1:'タイプ別の構造分析',EF2:'次のレベルへの具体策',EF3:'同タイプに典型的な罠',
+    EB:'Send',EN:'Free · Unsubscribe anytime',EO:'登録ありがとうございます。確認メール、または結果メールをご確認ください。',
+    emailPlaceholder:'your@email.com',
+    emailInvalid:'有効なメールアドレスを入力してください。',
+    emailFailed:'登録に失敗しました。時間をおいて再度お試しください。',
+    emailSubmitting:'Sending...',
+    emailNeedsResult:'先に診断結果を出してください。',
+    bkDesc:'『資本論』を成功哲学として読み直し、誰が先に払い、誰が最後の損失をぬぐうのかという順序から、資本と労働を解剖する。',
+    bkTitle:'未来を先に売れ',
+    bkSub:'マルクス成功哲学――支払順序で読む資本・労働・死の谷',
+    bkAuthor:'ミロシュ・ノヴァーク',
+    bkAuthorEn:'Milos Novak',
+    bkAmazon:'Amazonで予約受付中 →',
+    bkBlog:'Blog: Payment Order Lab Notes',
+    sh:'Payment Order Diagnostic:',
+    shareBottleneck:'Bottleneck',
+    cpd:'Copied',
+    cpy:'Copy'
+  },
+  en:{
+    T:'Visualize your<br><em>Payment Structure</em>',
+    S:'Who pays first. Who waits. Who absorbs the last loss. The order of money flow determines your position.',
+    M:'5 min · free',
+    t2:'6 Questions',d2:'Go with your gut. No wrong answers.',bt:'See results',advLabel:'Advanced: cash flow numbers (optional)',
+    ldQ:'Where are you now?',ld1:'Owner of Order',ld1s:'Gets paid first. Earns through structure.',ld2:'The Architect',ld2s:'Design partially functional.',ld3:'Structural Limbo',ld3s:'Breaking out, but not there yet.',ld4:'The Final Rag',ld4s:'Unclaimed burden lands here.',
+    lO:'Time to first revenue',hO:'First spend to first collection',uO:'months',
+    lW:'Working period',hW:'Order to delivery',uW:'days',
+    lC:'Payment wait',hC:'Delivery to payment',uC:'days',
+    lP:'Prepayment rate',hP:'% received before work',
+    lF:'Monthly fixed cost',hF:'Outflow at zero revenue',uF:'K USD',
+    lR:'Unplanned cost',hR:'Rework, lost deals (annual)',uR:'K USD',
+    moneyUnit:'K USD', perMonth:'mo',
+    dims:['Payment Order','Carrying Power','Capital Formation','Recurring Revenue','Risk Management','Loss Design'],
+    qs:['When does money come in — before or after you do the work?','When cash runs short, what happens?','Does this month\'s work make next month\'s work easier?','Do you have to find new clients every month?','If a deal falls through, who takes the hit?','When something goes wrong, who pays for it?'],
+    qL:['After the work','Dip into savings','Start from zero','Always hunting','All me','Always me'],
+    qR:['Before the work','Systems cover it','It builds up','It flows in','Shared','It\'s shared'],
+    types:{
+      rag:{n:'The Final Rag',d:'Unclaimed burden lands on you. There is a way up.',c:'tp-rag'},
+      limbo:{n:'Structural Limbo',d:'Breaking out. One more step to the next level.',c:'tp-limbo'},
+      arch:{n:'The Architect',d:'Partially functional. Lowest score is next challenge.',c:'tp-arch'},
+      owner:{n:'Owner of Order',d:'Structure designed. Getting paid first is working.',c:'tp-owner'}
+    },
+    typeMeaning:{
+      rag:'In your business, money comes in after the work, shortfalls are covered from your own pocket, and trouble costs land on you. This is not a capability problem — it is a sequence problem. Sequence can be redesigned.',
+      limbo:'Some mechanisms are working. But in the key areas, you still absorb costs first. To move up: focus on your lowest-scoring dimension.',
+      arch:'Your payment structure is well-designed in most areas. But the lowest-scoring dimension is holding the whole structure back. Fix that, and you reach the next level.',
+      owner:'Getting paid first is working. But this position does not maintain itself. Periodically check whether your lowest dimension is degrading.'
+    },
+    nextHint:{
+      rag:'On your next deal, get 10–20% upfront before starting. Breaking out of zero prepayment is the starting point of structural change.',
+      limbo:'Focus on your single lowest-scoring dimension. Do not try to fix everything at once. Moving one variable can shift the whole structure.',
+      arch:'Redesign your bottleneck at the level of contracts, systems, and institutions — not personal effort.',
+      owner:'Imagine your lowest score dropping from 4 to 3. Build a mechanism now that prevents that.'
+    },
+    R1:'YOUR STRUCTURE',R2:'DEATH VALLEY',R3:'READING PATH',R3D:'Recommended chapters from the canonical 10-chapter edition.',R4L:'WHAT THIS MEANS',BNL:'BOTTLENECK',NHL:'FROM HERE',bnP:'Lowest: ',bnS:'. Next challenge.',
+    valleyLabel:'EST. BUFFER NEEDED',
+    valleyMetric1:'Time to first collection',
+    valleyMetric2:'Effective exposure',
+    valleyMetric3:'Prepayment rate',
+    valleyBandTitle:'VALLEY LEVEL',
+    valleyBands:{light:'Light',moderate:'Moderate',deep:'Deep',severe:'Severe'},
+    valleyText:{
+      light:'The gap is relatively shallow. Even a small increase in upfront collection can make it safer.',
+      moderate:'The valley is real, but still very responsive to better payment terms or faster collection.',
+      deep:'Fixed cost and waiting time are heavy. Redesign contract terms, scope, and collection order before adding more demand.',
+      severe:'Your own balance sheet is likely acting as the last absorber. Prioritize upfront payment, staged billing, narrower scope, and lower burn.'
+    },
+    chapterWhy:'Helps with',
+    chs:[
+      {n:'Ch.1',t:'The First Move Decides the Game',w:'Sequence decides position'},
+      {n:'Ch.2',t:'Capital as Organized Waiting Capacity',w:'Designing carried time'},
+      {n:'Ch.3',t:'Why Workers Pay First',w:'Delivered first, settled later'},
+      {n:'Ch.4',t:'Selling Access to Future Capacity',w:'Pricing future access'},
+      {n:'Ch.5',t:'The Valley of Death Is a Design Failure',w:'Move the variables'},
+      {n:'Ch.6',t:'Paid Labor vs. Paid Capital Formation',w:'Turn advance payment into capital'},
+      {n:'Ch.7',t:'Monthly Fees, Memberships, and the Sale of Order',w:'Recurring revenue and non-abandonment'},
+      {n:'Ch.8',t:'Absence, First Loss, and the Architecture of Capital',w:'Absence, first loss, choke points'},
+      {n:'Ch.9',t:'Casebook: How Owners Get Paid First',w:'Education, consulting, research, real estate'},
+      {n:'Ch.10',t:'Become the One Who Gets Paid First',w:'Redesign the order'}
+    ],
+    dcm:[[0,3],[1,4],[5,8],[6,3],[7,9],[7,9]],
+    CT:'BOOK',
+    ET:'Next Level',
+    ED:'Analysis for your type and one step up, sent by email.',
+    EF1:'Analysis for type',EF2:'Next-level strategy',EF3:'Traps for type',
+    EB:'Send',EN:'Free · Unsubscribe anytime',EO:'Thanks — check your confirmation or result email.',
+    emailPlaceholder:'your@email.com',
+    emailInvalid:'Please enter a valid email address.',
+    emailFailed:'Subscription failed. Please try again in a moment.',
+    emailSubmitting:'Sending...',
+    emailNeedsResult:'Please generate your result first.',
+    bkDesc:'Rereading Capital as a success philosophy. Who pays first, who absorbs the last loss — dissecting capital and labor through the lens of sequence.',
+    bkTitle:'Sell the Future First',
+    bkSub:'Marx as Success Philosophy — Capital, Labor, and the Valley of Death through Payment Order',
+    bkAuthor:'Milos Novak',
+    bkAuthorEn:'',
+    bkAmazon:'Pre-order on Amazon →',
+    bkBlog:'Blog: Payment Order Lab Notes',
+    sh:'Payment Order:',
+    shareBottleneck:'Bottleneck',
+    cpd:'Copied',
+    cpy:'Copy'
+  }
+};
+
+function safeNumber(value, fallback=0, min=0, max=Infinity){
+  const n=Number(value);
+  if(!Number.isFinite(n)) return fallback;
+  return Math.max(min, Math.min(max, n));
+}
+
+function getSliderValues(){
+  return DIM_KEYS.map((_,i)=>safeNumber(document.getElementById(`s${i}`)?.value,3,1,5));
+}
+
+function getAdvancedInputs(){
+  return {
+    timeToFirstRevenueMonths:safeNumber(document.getElementById('vO').value,6,0,120),
+    workingPeriodDays:safeNumber(document.getElementById('vW').value,60,0,3650),
+    collectionPeriodDays:safeNumber(document.getElementById('vC').value,45,0,3650),
+    prepaymentRatePct:safeNumber(document.getElementById('vP').value,10,0,100),
+    monthlyFixedCost:safeNumber(document.getElementById('vF').value,80,0,1000000),
+    annualUnplannedCost:safeNumber(document.getElementById('vR').value,120,0,1000000)
+  };
+}
+
+function computeValley(adv){
+  const prepay=Math.max(0,Math.min(100,adv.prepaymentRatePct))/100;
+  const cycleMonths=(adv.workingPeriodDays*(1-prepay)+adv.collectionPeriodDays)/30;
+  const carryMonths=Math.max(adv.timeToFirstRevenueMonths,cycleMonths);
+  const monthlyBurn=adv.monthlyFixedCost + adv.annualUnplannedCost/12;
+  const estimatedBuffer=Math.round(monthlyBurn*carryMonths);
+  let bandKey='light';
+  if(estimatedBuffer>=600){bandKey='severe';}
+  else if(estimatedBuffer>=300){bandKey='deep';}
+  else if(estimatedBuffer>=150){bandKey='moderate';}
+  return {
+    cycleMonths:+cycleMonths.toFixed(1),
+    carryMonths:+carryMonths.toFixed(1),
+    monthlyBurn:+monthlyBurn.toFixed(1),
+    estimatedBuffer,
+    prepaymentRatePct:adv.prepaymentRatePct,
+    bandKey
+  };
+}
+
+function getTrackingContext(){
+  const p=new URLSearchParams(window.location.search);
+  return {
+    utm_source:p.get('utm_source')||'',
+    utm_medium:p.get('utm_medium')||'',
+    utm_campaign:p.get('utm_campaign')||'',
+    referrer_url:document.referrer||window.location.href
+  };
+}
+
+function formatMoney(value,t){
+  return `${Number(value).toLocaleString()} ${t.moneyUnit}`;
+}
+
+function findMinIndex(values){
+  let min=values[0],index=0;
+  for(let i=1;i<values.length;i++){
+    if(values[i]<min){min=values[i];index=i;}
+  }
+  return index;
+}
+
+function getChapterRecommendations(scores,t){
+  const ranked=DIM_KEYS.map((key,index)=>({key,index,score:scores[index],label:t.dims[index]}))
+    .sort((a,b)=>a.score-b.score||a.index-b.index);
+  const selected=[];
+  const seen=new Set();
+  ranked.slice(0,2).forEach(item=>{
+    (t.dcm[item.index]||[]).forEach(chIndex=>{
+      if(selected.length>=3||seen.has(chIndex)) return;
+      const chapter=t.chs[chIndex];
+      if(chapter){
+        seen.add(chIndex);
+        selected.push({...chapter,reason:item.label});
+      }
+    });
+  });
+  for(const chapter of t.chs){
+    if(selected.length>=3) break;
+    if(!seen.has(t.chs.indexOf(chapter))){
+      seen.add(t.chs.indexOf(chapter));
+      selected.push({...chapter,reason:t.dims[findMinIndex(scores)]});
+    }
+  }
+  return selected.slice(0,3);
+}
+
+function getTypeKey(total){
+  const avg=total/6;
+  if(avg<=2) return 'rag';
+  if(avg<=3) return 'limbo';
+  if(avg<=4) return 'arch';
+  return 'owner';
+}
+
+function buildState(){
+  const scores=getSliderValues();
+  const advanced=getAdvancedInputs();
+  const totalScore=scores.reduce((a,b)=>a+b,0);
+  const typeKey=getTypeKey(totalScore);
+  const bottleneckIndex=findMinIndex(scores);
+  const valley=computeValley(advanced);
+  return {
+    scores,
+    advanced,
+    totalScore,
+    typeKey,
+    bottleneckIndex,
+    valley
+  };
+}
+
+function buildPayload(state,t){
+  const scoreMap={};
+  DIM_KEYS.forEach((key,index)=>{scoreMap[key]=state.scores[index];});
+  const chapters=getChapterRecommendations(state.scores,t);
+  return {
+    schemaVersion:1,
+    locale:la,
+    typeKey:state.typeKey,
+    typeLabel:t.types[state.typeKey].n,
+    totalScore:state.totalScore,
+    scoreMax:30,
+    scores:scoreMap,
+    bottleneckKey:DIM_KEYS[state.bottleneckIndex],
+    bottleneckLabel:t.dims[state.bottleneckIndex],
+    advanced:{...state.advanced},
+    valley:{...state.valley,bandLabel:t.valleyBands[state.valley.bandKey]},
+    recommendedChapters:chapters.map(ch=>({number:ch.n,title:ch.t,subtitle:ch.w,reason:ch.reason})),
+    tracking:getTrackingContext()
+  };
+}
+
+function updateRangeValues(){
+  for(let i=0;i<6;i++){
+    const input=document.getElementById(`s${i}`);
+    const out=document.getElementById(`sv${i}`);
+    if(input&&out) out.textContent=input.value;
+  }
+}
+
+function bld(){
+  const t=tx[la];
+  const c=document.getElementById('SL');
+  let html='';
+  for(let i=0;i<6;i++){
+    const current=document.getElementById(`s${i}`)?.value||'3';
+    html+=`<div class="sg"><div class="sg-top"><span class="sg-q">${t.qs[i]}</span><span class="sg-v" id="sv${i}">${current}</span></div><div class="sg-ends"><span class="sg-e">${t.qL[i]}</span><span class="sg-e">${t.qR[i]}</span></div><input type="range" min="1" max="5" value="${current}" id="s${i}" oninput="document.getElementById('sv${i}').textContent=this.value"></div>`;
+  }
+  c.innerHTML=html;
+}
+
+function renderChapterRecommendations(chapters,t){
+  const root=document.getElementById('CHS');
+  root.innerHTML=chapters.map(ch=>`<div class="cr"><div class="cr-n">${ch.n}</div><div><div class="cr-t">${ch.t}</div><div class="cr-w">${ch.w} · ${t.chapterWhy}: ${ch.reason}</div></div></div>`).join('');
+}
+
+function renderValley(state,t){
+  const v=state.valley;
+  document.getElementById('R2').textContent=t.R2;
+  document.getElementById('DVB').textContent=t.valleyBandTitle;
+  const burn=`${formatMoney(v.monthlyBurn,t)} / ${t.perMonth}`;
+  const detail=la==='ja'
+    ? `<strong>${t.valleyBands[v.bandKey]}</strong>。月次の概算流出は ${burn}。前受け率 ${state.advanced.prepaymentRatePct.toFixed(0)}% を織り込んでも、実効露出は ${v.carryMonths.toFixed(1)} か月。${t.valleyText[v.bandKey]}`
+    : `<strong>${t.valleyBands[v.bandKey]}</strong>. Approx. monthly burn is ${burn}. Even after ${state.advanced.prepaymentRatePct.toFixed(0)}% upfront collection, effective exposure is ${v.carryMonths.toFixed(1)} months. ${t.valleyText[v.bandKey]}`;
+  document.getElementById('DVT').innerHTML=detail;
+}
+
+function renderResults(state,scrollToResult=false){
+  const t=tx[la];
+  const type=t.types[state.typeKey];
+  const bottleneckLabel=t.dims[state.bottleneckIndex];
+  const chapters=getChapterRecommendations(state.scores,t);
+
+  document.getElementById('R1').textContent=t.R1;
+  document.getElementById('TN').textContent=type.n;
+  document.getElementById('TD').textContent=type.d;
+  document.getElementById('TB').className='tb '+type.c;
+  document.getElementById('totalScore').textContent=`SCORE: ${state.totalScore} / 30`;
+  dR(state.scores,t.dims);
+
+  renderValley(state,t);
+
+  document.getElementById('R4L').textContent=t.R4L;
+  document.getElementById('typeMeaning').textContent=t.typeMeaning[state.typeKey];
+  document.getElementById('BNL').textContent=t.BNL;
+  document.getElementById('BNT').innerHTML=`${t.bnP}<strong>${bottleneckLabel}</strong> (${state.scores[state.bottleneckIndex]}/5)${t.bnS}`;
+  document.getElementById('NHL').textContent=t.NHL;
+  document.getElementById('NHT').textContent=t.nextHint[state.typeKey];
+
+  document.getElementById('R3').textContent=t.R3;
+  document.getElementById('R3D').textContent=t.R3D;
+  renderChapterRecommendations(chapters,t);
+
+  document.getElementById('CT').textContent=t.CT;
+  document.getElementById('ET').textContent=t.ET;
+  document.getElementById('ED').textContent=t.ED;
+  document.getElementById('EF1').textContent=t.EF1;
+  document.getElementById('EF2').textContent=t.EF2;
+  document.getElementById('EF3').textContent=t.EF3;
+  document.getElementById('EB').textContent=t.EB;
+  document.getElementById('EN').textContent=t.EN;
+  document.getElementById('EI').placeholder=t.emailPlaceholder;
+  document.getElementById('bkDesc').textContent=t.bkDesc;
+  document.getElementById('bkTitle').textContent=t.bkTitle;
+  document.getElementById('bkSub').textContent=t.bkSub;
+  document.getElementById('bkAuthor').textContent=t.bkAuthor;
+  document.getElementById('bkAuthorEn').textContent=t.bkAuthorEn;
+  document.getElementById('bkAmazon').textContent=t.bkAmazon;
+  document.getElementById('bkBlog').textContent=t.bkBlog;
+
+  const form=document.getElementById('ER');
+  form.style.display='';
+  document.getElementById('EN').style.display='block';
+  clearEmailStatus();
+
+  window._r=buildPayload(state,t);
+  document.getElementById('RES').classList.add('on');
+  if(scrollToResult){
+    setTimeout(()=>document.getElementById('RES').scrollIntoView({behavior:'smooth',block:'start'}),80);
+  }
+}
+
+function L(l){
+  la=l;
+  document.documentElement.lang=l;
+  document.querySelectorAll('.lang button').forEach(b=>b.classList.remove('on'));
+  document.querySelector(`.lang button[onclick="L('${l}')"]`).classList.add('on');
+  const t=tx[l];
+  document.getElementById('T').innerHTML=t.T;
+  document.getElementById('S').textContent=t.S;
+  document.getElementById('M').textContent=t.M;
+  document.getElementById('ldQ').textContent=t.ldQ;
+  document.getElementById('ld1').textContent=t.ld1;
+  document.getElementById('ld1s').textContent=t.ld1s;
+  document.getElementById('ld2').textContent=t.ld2;
+  document.getElementById('ld2s').textContent=t.ld2s;
+  document.getElementById('ld3').textContent=t.ld3;
+  document.getElementById('ld3s').textContent=t.ld3s;
+  document.getElementById('ld4').textContent=t.ld4;
+  document.getElementById('ld4s').textContent=t.ld4s;
+  document.getElementById('t2').textContent=t.t2;
+  document.getElementById('d2').textContent=t.d2;
+  document.getElementById('BT').textContent=t.bt;
+  document.getElementById('advLabel').textContent=t.advLabel;
+  document.getElementById('lO').textContent=t.lO;
+  document.getElementById('hO').textContent=t.hO;
+  document.getElementById('uO').textContent=t.uO;
+  document.getElementById('lW').textContent=t.lW;
+  document.getElementById('hW').textContent=t.hW;
+  document.getElementById('uW').textContent=t.uW;
+  document.getElementById('lC').textContent=t.lC;
+  document.getElementById('hC').textContent=t.hC;
+  document.getElementById('uC').textContent=t.uC;
+  document.getElementById('lP').textContent=t.lP;
+  document.getElementById('hP').textContent=t.hP;
+  document.getElementById('lF').textContent=t.lF;
+  document.getElementById('hF').textContent=t.hF;
+  document.getElementById('uF').textContent=t.uF;
+  document.getElementById('lR').textContent=t.lR;
+  document.getElementById('hR').textContent=t.hR;
+  document.getElementById('uR').textContent=t.uR;
+  bld();
+  updateRangeValues();
+  if(window._lastState){
+    renderResults(window._lastState,false);
+  } else {
+    document.getElementById('CT').textContent=t.CT;
+    document.getElementById('ET').textContent=t.ET;
+    document.getElementById('ED').textContent=t.ED;
+    document.getElementById('EF1').textContent=t.EF1;
+    document.getElementById('EF2').textContent=t.EF2;
+    document.getElementById('EF3').textContent=t.EF3;
+    document.getElementById('EB').textContent=t.EB;
+    document.getElementById('EN').textContent=t.EN;
+    document.getElementById('EI').placeholder=t.emailPlaceholder;
+    document.getElementById('bkDesc').textContent=t.bkDesc;
+    document.getElementById('bkTitle').textContent=t.bkTitle;
+    document.getElementById('bkSub').textContent=t.bkSub;
+    document.getElementById('bkAuthor').textContent=t.bkAuthor;
+    document.getElementById('bkAuthorEn').textContent=t.bkAuthorEn;
+    document.getElementById('bkAmazon').textContent=t.bkAmazon;
+    document.getElementById('bkBlog').textContent=t.bkBlog;
+  }
+}
+
+function run(){
+  const state=buildState();
+  window._lastState=state;
+  renderResults(state,true);
+}
+
+function dR(sc,lb){
+  const cv=document.getElementById('RC'),cx=cv.getContext('2d');
+  const sz=300;
+  cv.width=sz*2;cv.height=sz*2;cv.style.width=sz+'px';cv.style.height=sz+'px';
+  cx.setTransform(1,0,0,1,0,0);
+  cx.scale(2,2);
+  cx.clearRect(0,0,sz,sz);
+  const c=sz/2,r=100,n=sc.length,a=Math.PI*2/n,s=-Math.PI/2;
+  [0.2,0.4,0.6,0.8,1].forEach(f=>{
+    cx.beginPath();
+    for(let i=0;i<=n;i++){
+      const ag=s+i*a;
+      const x=c+Math.cos(ag)*r*f;
+      const y=c+Math.sin(ag)*r*f;
+      i?cx.lineTo(x,y):cx.moveTo(x,y);
+    }
+    cx.strokeStyle='#e0ddd8';
+    cx.lineWidth=.5;
+    cx.stroke();
+  });
+  for(let i=0;i<n;i++){
+    const ag=s+i*a;
+    cx.beginPath();
+    cx.moveTo(c,c);
+    cx.lineTo(c+Math.cos(ag)*r,c+Math.sin(ag)*r);
+    cx.strokeStyle='#e0ddd8';
+    cx.lineWidth=.5;
+    cx.stroke();
+  }
+  cx.beginPath();
+  sc.forEach((v,i)=>{
+    const ag=s+i*a;
+    const x=c+Math.cos(ag)*r*(v/5);
+    const y=c+Math.sin(ag)*r*(v/5);
+    i?cx.lineTo(x,y):cx.moveTo(x,y);
+  });
+  cx.closePath();
+  cx.fillStyle='rgba(154,126,46,.12)';
+  cx.fill();
+  cx.strokeStyle='#9a7e2e';
+  cx.lineWidth=2.5;
+  cx.stroke();
+  sc.forEach((v,i)=>{
+    const ag=s+i*a;
+    cx.beginPath();
+    cx.arc(c+Math.cos(ag)*r*(v/5),c+Math.sin(ag)*r*(v/5),4,0,Math.PI*2);
+    cx.fillStyle='#9a7e2e';
+    cx.fill();
+    const lx=c+Math.cos(ag)*(r+18),ly=c+Math.sin(ag)*(r+18);
+    cx.font='600 9.5px "DM Mono"';
+    cx.fillStyle='#777';
+    cx.textAlign='center';
+    cx.textBaseline='middle';
+    cx.fillText(lb[i],lx,ly);
+  });
+}
+
+function shareX(){
+  if(!window._r) return;
+  const r=window._r,t=tx[la];
+  const text=`${t.sh} ${r.typeLabel} (${r.totalScore}/30)\n${t.shareBottleneck}: ${r.bottleneckLabel}\n#PaymentOrder`;
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`,'_blank','noopener');
+}
+
+function cp(){
+  if(!window._r) return;
+  const r=window._r,t=tx[la];
+  let text=`${t.sh}\nType: ${r.typeLabel} (${r.totalScore}/30)\n`;
+  Object.entries(r.scores).forEach(([key,value],index)=>{
+    text+=`${tx[la].dims[index]}: ${value}/5\n`;
+  });
+  text+=`${t.shareBottleneck}: ${r.bottleneckLabel}`;
+  navigator.clipboard.writeText(text).then(()=>{
+    const button=document.getElementById('CB');
+    const original=button.textContent;
+    button.textContent=t.cpd;
+    setTimeout(()=>button.textContent=original||t.cpy,2000);
+  });
+}
+
+function setEmailStatus(message,isError=false){
+  const box=document.getElementById('EO');
+  box.style.display='block';
+  box.textContent=message;
+  box.classList.toggle('err',isError);
+}
+
+function clearEmailStatus(){
+  const box=document.getElementById('EO');
+  box.style.display='none';
+  box.textContent='';
+  box.classList.remove('err');
+}
+
+async function sub(){
+  const t=tx[la];
+  const input=document.getElementById('EI');
+  const button=document.getElementById('EB');
+  if(!window._r){
+    setEmailStatus(t.emailNeedsResult,true);
+    return;
+  }
+  const email=input.value.trim();
+  if(!email || !input.checkValidity()){
+    setEmailStatus(t.emailInvalid,true);
+    if(typeof input.reportValidity==='function') input.reportValidity();
+    return;
+  }
+
+  button.disabled=true;
+  button.textContent=t.emailSubmitting;
+  clearEmailStatus();
+
+  try{
+    const response=await fetch(window.DIAG_CONFIG.subscribeEndpoint,{ 
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email,result:window._r,tracking:getTrackingContext()})
+    });
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok){
+      throw new Error(data.error||t.emailFailed);
+    }
+    document.getElementById('ER').style.display='none';
+    document.getElementById('EN').style.display='none';
+    setEmailStatus(t.EO,false);
+  }catch(err){
+    setEmailStatus(err?.message||t.emailFailed,true);
+  }finally{
+    button.disabled=false;
+    button.textContent=t.EB;
+  }
+}
+
+L(la);
+</script>
+</body>
+</html>
